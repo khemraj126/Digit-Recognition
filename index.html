@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Digit Classifier</title>
+</head>
+<body>
+
+<h2>Draw a Digit</h2>
+
+<canvas id="canvas" width="280" height="280" style="border:1px solid black;"></canvas>
+<br><br>
+
+<button onclick="predict()">Predict</button>
+<button onclick="clearCanvas()">Clear</button>
+
+<h3 id="result"></h3>
+
+<script>
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+
+// 🔥 Black background
+ctx.fillStyle = "black";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+let drawing = false;
+
+canvas.onmousedown = () => drawing = true;
+canvas.onmouseup = () => drawing = false;
+
+canvas.onmousemove = function(e) {
+    if (!drawing) return;
+
+    ctx.fillStyle = "white";  // draw white digit
+    ctx.beginPath();
+    ctx.arc(e.offsetX, e.offsetY, 12, 0, 2 * Math.PI);
+    ctx.fill();
+};
+
+function clearCanvas() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function predict() {
+    let dataURL = canvas.toDataURL();
+
+    fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataURL })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            "Prediction: " + data.prediction;
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById("result").innerText =
+            "Error occurred";
+    });
+}
+</script>
+
+</body>
+</html>
